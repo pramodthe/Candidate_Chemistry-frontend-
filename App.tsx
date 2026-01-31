@@ -4,6 +4,7 @@ import { StanceCard, UserChoice } from './types';
 import Card from './components/Card';
 import Results from './components/Results';
 import AIAssistant from './components/AIAssistant';
+import ResearchChatbot from './components/ResearchChatbot';
 import { Loader2, AlertCircle, Vote, Sparkles, X, BookOpen } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -263,6 +264,9 @@ const App: React.FC = () => {
         )}
 
       </main>
+
+      {/* Research Chatbot */}
+      <ResearchChatbot />
     </div>
   );
 };
