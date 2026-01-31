@@ -1,15 +1,4 @@
 
-# Candidate Chemistry
-
-A swipe-based policy matching application for San Francisco's 2026 Housing Crisis election. Discover your political alignment with candidates through anonymous policy voting.
-
-## Setup
-
-### Prerequisites
-
-- Node.js (v18+)
-- Python 3.8+
-- Gemini API key
 ### Installation
 
 ```bash
