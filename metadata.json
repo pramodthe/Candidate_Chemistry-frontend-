@@ -1,0 +1,7 @@
+{
+  "name": "Candidate Chemistry",
+  "description": "A swipe-based policy matching application for San Francisco's 2026 Housing Crisis. Discover your political alignment anonymously before revealing which candidates share your views.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
