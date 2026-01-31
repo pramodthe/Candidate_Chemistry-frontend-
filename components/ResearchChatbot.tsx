@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useRef as useRefRef } from 'react';
 import { MessageCircle, X, Send, User, Bot, Search, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import {
   getCandidates,
@@ -9,6 +9,13 @@ import {
   cancelResearch
 } from '../services/researchService';
 import { ChatMessage, ResearchStatus } from '../types';
+
+// Simple unique ID generator
+let messageIdCounter = 0;
+const generateMessageId = () => {
+  messageIdCounter++;
+  return `msg_${Date.now()}_${messageIdCounter}`;
+};
 
 const ResearchChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +42,7 @@ const ResearchChatbot: React.FC = () => {
 
   const addMessage = (content: string, role: 'user' | 'assistant', type: ChatMessage['type'] = 'text') => {
     setMessages(prev => [...prev, {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role,
       content,
       timestamp: new Date(),
@@ -58,7 +65,7 @@ const ResearchChatbot: React.FC = () => {
 
         case 'list':
           const candidates = await getCandidates();
-          addMessage(`**Available Candidates:**\n\n${candidates.map(c => `• ${c.name}`).join('\n')}\n\nType "research <name>" to research any candidate.`, 'assistant');
+          addMessage(`Available Candidates:\n\n${candidates.map(c => `- ${c.name}`).join('\n')}\n\nType "research <name>" to research any candidate.`, 'assistant');
           break;
 
         case 'research':
@@ -67,7 +74,7 @@ const ResearchChatbot: React.FC = () => {
             break;
           }
           const session = await startResearch(rest);
-          addMessage(`Research started for **${rest}**\n\nResearch ID: \`${session.id}\`\n\nUse \`status ${session.id}\` to check progress.`, 'assistant');
+          addMessage(`Research started for ${rest}\n\nResearch ID: ${session.id}\n\nUse "status ${session.id}" to check progress.`, 'assistant');
           // Start polling for status
           pollStatus(session.id);
           break;
@@ -80,7 +87,7 @@ const ResearchChatbot: React.FC = () => {
           }
           addMessage(`Starting comparison of: ${names.join(', ')}...\n\nThis may take a moment.`, 'assistant', 'loading');
           const comparison = await startResearch(names[0]); // Simplified for now
-          addMessage(`Comparison complete!\n\n**${names.join(' vs ')}**\n\nSee individual research results for detailed stance comparisons.`, 'assistant');
+          addMessage(`Comparison complete!\n\n${names.join(' vs ')}\n\nSee individual research results for detailed stance comparisons.`, 'assistant');
           break;
 
         case 'status':
@@ -94,7 +101,7 @@ const ResearchChatbot: React.FC = () => {
             break;
           }
           const statusEmoji = status.status === 'completed' ? '✅' : status.status === 'failed' ? '❌' : status.status === 'in_progress' ? '🔄' : '⏳';
-          addMessage(`${statusEmoji} **Research Status**\n\nID: \`${status.id}\`\nProgress: ${status.progress}%\n\n${status.message || ''}`, 'assistant');
+          addMessage(`${statusEmoji} Research Status\n\nID: ${status.id}\nProgress: ${status.progress}%\n\n${status.message || ''}`, 'assistant');
           break;
 
         case 'active':
@@ -102,7 +109,7 @@ const ResearchChatbot: React.FC = () => {
           if (active.length === 0) {
             addMessage('No active research sessions.', 'assistant');
           } else {
-            addMessage(`**Active Research:**\n\n${active.map(s => `• ${s.candidate_name} (${s.progress}%) - \`${s.id}\``).join('\n')}`, 'assistant');
+            addMessage(`Active Research:\n\n${active.map(s => `- ${s.candidate_name} (${s.progress}%) - ${s.id}`).join('\n')}`, 'assistant');
           }
           break;
 
@@ -112,7 +119,7 @@ const ResearchChatbot: React.FC = () => {
             break;
           }
           await cancelResearch(rest);
-          addMessage(`Research \`${rest}\` cancelled.`, 'assistant');
+          addMessage(`Research "${rest}" cancelled.`, 'assistant');
           break;
 
         case 'result':
@@ -126,11 +133,11 @@ const ResearchChatbot: React.FC = () => {
             addMessage('Results not found. Research may still be in progress.', 'assistant', 'error');
             break;
           }
-          addMessage(`**Research Results: ${result.candidate_name}**\n\n${result.summary}\n\n**Stances:**\n${result.stances.map(s => `• ${s.question}: ${s.candidate_matches[0]?.alignment}`).join('\n')}`, 'assistant');
+          addMessage(`Research Results: ${result.candidate_name}\n\n${result.summary}\n\nStances:\n${result.stances.map(s => `- ${s.question}: ${s.candidate_matches[0]?.alignment}`).join('\n')}`, 'assistant');
           break;
 
         default:
-          addMessage(`Unknown command: \`${command}\`\n\nType \`help\` for available commands.`, 'assistant', 'error');
+          addMessage(`Unknown command: "${command}"\n\nType "help" for available commands.`, 'assistant', 'error');
       }
     } catch (error) {
       addMessage('An error occurred. Please try again.', 'assistant', 'error');
